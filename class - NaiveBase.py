@@ -57,10 +57,11 @@ class Naivebase:
             for i in range (0,self.numberOfFeatueres):
                 posprob = posprob*self.Classprob1(1,i)
                 negprob = negprob*self.Classprob0(1,i)
-            if posprob > negprob:
-                return 1
-            else :
-                return 0
+            return 1 if posprob > negprob else 0
+#            if posprob > negprob:
+#                return 1
+#            else :
+#                return 0
     def getPredictions(self): # create prdictions for test data
         predictions = []
         for i in range(len(self.ytest)):
