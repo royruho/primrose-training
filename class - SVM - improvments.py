@@ -19,7 +19,7 @@ import seaborn as sns
 
 np.seterr(all='ignore')
 
-def prepareiris(data):
+def prepareiris(data): # return data with first 2 features, class label set to 1 , -1  and normalize featues
     iris = pd.read_csv(data)
     iris.columns = ['sepal_length', 'sepal_width','petal_length',' petal_width','class']
     def f(row):
@@ -32,9 +32,9 @@ def prepareiris(data):
     iris = iris[['sepal_length', 'sepal_width','label']]
     iris.columns = [1,2,'L']
     for i in range (1,len(iris.columns)):    
-        normalized = (iris[i]-iris[i].mean())/iris[i].std()
+        normalized = (iris[i]-iris[i].mean())/iris[i].std() # normlize data
         iris[i]=normalized
-    corr = iris.corr()
+    corr = iris.corr() # print corr matrix
     ax = sns.heatmap(
     corr, 
     vmin=-1, vmax=1, center=0,
@@ -45,7 +45,7 @@ def prepareiris(data):
     rotation=45,
     horizontalalignment='right');
     plt.show()
-    return (iris) # an array 
+    return (iris) # pandas array 
     
 def Split(data,ts=0.20): # parse array to train and test 
             from sklearn.model_selection import train_test_split
@@ -62,7 +62,6 @@ class SVM:
         self.new_teta = self.theta0
         self.gradient = 0
         self.shape = (1,len(self.theta0))
-#        gradient = compute_gradient(new_teta,self.X,self.y)
         sumofloss =0
         for iteration in range (0,self.irange):
             if iteration % 50 == 0 :
@@ -78,7 +77,7 @@ class SVM:
             self.listoflos.append(sumofloss/i)
             self.gradient = sumgradient / i
             self.new_teta = self.updateteta(iteration)
-        print ('finel teta is :' , self.new_teta)
+        print ('finel teta is :' , self.new_teta, 'theta norma = ' ,np.linalg.norm(self.new_teta[1:]))
 
             
 #        print ('final teta:',new_teta)
@@ -93,7 +92,7 @@ class SVM:
 #        print ('self.y[index]' , self.y[index])
         return np.maximum(0, 1-loss)
     def calcgradient(self,index):
-        if self.y[index]*float(np.dot(np.reshape(self.X[index],self.shape),self.new_teta))<25*self.learning_rate:
+        if self.y[index]*float(np.dot(np.reshape(self.X[index],self.shape),self.new_teta))<1: #*self.learning_rate:
             return -self.y[index]*self.X[index]
         else:
             return 0
