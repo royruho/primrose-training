@@ -149,9 +149,9 @@ class Kmeans_train(Kmeans):
 if __name__ == "__main__":
     irisdata = prepareiris('https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data')
     irisdata_numpy = irisdata.to_numpy()
-    trainX,testX,trainy,testy = Split(irisdata_numpy,0)
+    trainX,testX,trainy,testy = Split(irisdata_numpy,.01)
     kfit = Kmeans(trainX,6,plot_class=True) # create kmenas instace plot each step = true
-    train = Kmeans_train(trainX,5,3) # train 5 kmenas instances
+    train = Kmeans_train(trainX,3,3) # train 5 kmenas instances
     best_kmenas = train #  return the best kmenas parameters from kmenas_train
     best_kmenas.plot_classes_2d() #plot classes
 
@@ -168,3 +168,5 @@ if __name__ == "__main__":
     plt.show()
 
 
+    a = best_kmenas.get_centers()
+    
