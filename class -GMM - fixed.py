@@ -13,6 +13,8 @@ from sklearn.preprocessing import scale
 import matplotlib.pyplot as plt
 import math
 from scipy.stats import multivariate_normal
+import KNN
+
 
 
 class Gaussian:
@@ -116,7 +118,7 @@ class GMM:
             self.expectation()
             self.maximization()
             delta_log_liklihood = self.log_liklihood[i] - self.log_liklihood[i+1]
-            print (self.log_liklihood[i+1], delta_log_liklihood)
+            print (i,self.log_liklihood[i+1], delta_log_liklihood)
             i = i +1
             
                 
