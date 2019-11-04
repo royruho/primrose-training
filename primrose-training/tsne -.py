@@ -46,10 +46,9 @@ def compute_perplexity(p_table,index):
             h += -(p_table[index,i])*np.log2(p_table[index,i]+epsilon)
     return 2**h
 
-def binary_sigma_search(p_table,index):
+def binary_sigma_search(p_table,index,sigma = 1):
     min_sigma = 0
     max_sigma = 10**3
-    sigma = 1
     i = 0
     while (abs(compute_perplexity(p_table,index)-PERPLEXITY) > epsilon) and i < 20:
        i = i+1
@@ -78,7 +77,6 @@ def plot_tsne_1d(y,labels):
     
 def plot_tsne_3d(y,labels):
     fig = plt.figure()
-    cdict = {0: 'red', 1: 'blue', 2: 'green'}
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(y[:,0],y[:,1],y[:,2],c=labels)
     plt.show()
@@ -115,7 +113,7 @@ if __name__ == "__main__":
     X = iris.data[:,:4]  
     labels = iris.target[:]
     epsilon = 10**(-6)
-    PERPLEXITY=10
+    PERPLEXITY=15
     sigma=1
     EPOCHS=20
     LR= .01
@@ -204,6 +202,57 @@ if __name__ == "__main__":
             print (cost)
             LR = LR*.5
 
+
+    house_price_df = pd.read_csv(r'C:\Users\royru\Desktop\primrose\github\kaggle\train.csv')
+    cols = ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond', 'MasVnrArea', 'GrLivArea','TotalBsmtSF','1stFlrSF' ]
+    house_price_8 = house_price_df[cols]
+    house_price_8 =house_price_8.replace(0,1)
+    house_price_8 = house_price_8.fillna(value = 1)
+    labels_df = house_price_df['SalePrice']
+    X = np.asarray(house_price_8)
+    X = X[:200]
+    labels = np.asarray(labels_df)
+    labels = labels [:200]
+    LR = 0.001
+    EPOCHS=20
+    PERPLEXITY=40
+    q_dim = 3
+    sigma = 10000
+    # create and normlize p_ table (p - higher dimension)
+    # initilize p_table with sigma 1
+    p_table = np.zeros((X.shape[0],X.shape[0]))
+    for i in range (len(p_table[:,0])):
+        for j in range (len(p_table[0,:])):
+            if i != j :
+                p_table [i,j] = p_distance(X[i],X[j],sigma)
+        sum_over_i = np.sum(p_table[i])
+        p_table[i] = p_table[i]/sum_over_i
+    # update sigma for each index of p to normlize peprlexity between indexes     
+    for i in range (len(p_table[:,0])):
+       p_table = binary_sigma_search(p_table,i,sigma)
+    p_table = (p_table+p_table.T)/2*i
+
+# create and normlize q_table (q - lower dimention=3)
+
+    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+    y = np.copy(initialize_y)
+    q_table =  np.zeros((y.shape[0],y.shape[0]))
+    q_table = update_q_table(q_table,y)
+    
+    # update y
+    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+    plot_tsne_3d(initialize_y,labels)
+    cost = calc_cost(q_table,p_table)
+    print (cost)
+    for i in range (EPOCHS):
+        y = update_y(q_table,p_table,y)
+        q_table = update_q_table(q_table,y)
+        cost = calc_cost(q_table,p_table)
+        if (i%5) == 0 :
+            plot_tsne_3d(y,labels)
+            print (cost)
+            LR = LR*.8
+    
 
 
 
