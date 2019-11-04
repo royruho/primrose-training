@@ -20,6 +20,7 @@ from sklearn.preprocessing import scale
 import matplotlib.pyplot as plt
 import math
 from scipy.stats import multivariate_normal
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def p_distance(xi,xj,sigma):
@@ -50,33 +51,37 @@ def binary_sigma_search(p_table,index):
     max_sigma = 10**3
     sigma = 1
     i = 0
-    while (abs(compute_perplexity(p_table,index)-PERPLEXITY) > epsilon):
-        i = i+1
-        if i >1000 :
-            break
-        else :
-            if compute_perplexity(p_table,index) > PERPLEXITY :
-                    max_sigma = sigma
-                    sigma = (max_sigma+min_sigma)/2
-            else :
-                min_sigma = sigma
-                sigma = (min_sigma+max_sigma)/2
-        p_table = update_p_table_i(p_table,index,sigma)
+    while (abs(compute_perplexity(p_table,index)-PERPLEXITY) > epsilon) and i < 20:
+       i = i+1
+       if compute_perplexity(p_table,index) > PERPLEXITY :
+                max_sigma = sigma
+                sigma = (max_sigma+min_sigma)/2
+       else :
+            min_sigma = sigma
+            sigma = (min_sigma+max_sigma)/2
+       p_table = update_p_table_i(p_table,index,sigma)
 #        print (compute_perplexity(p_table,index))
 #        print (sigma)
     return p_table
-
-    
-class Tsne:
-    def __init__(self,k,data):
-        self.k = k
-        self.data = data
 
 def plot_tsne_2d(y,labels):
     cdict = {0: 'red', 1: 'blue', 2: 'green'}
     for i in range (len(labels)):
         plt.plot(y[i,0],y[i,1],'o',c=cdict[labels[i]]) #plot data 
-    plt.show()    
+    plt.show()
+    
+def plot_tsne_1d(y,labels):
+    cdict = {0: 'red', 1: 'blue', 2: 'green'}
+    for i in range (len(labels)):
+        plt.plot(y[i,0],y[i,0],'o',c=cdict[labels[i]]) #plot data 
+    plt.show()
+    
+def plot_tsne_3d(y,labels):
+    fig = plt.figure()
+    cdict = {0: 'red', 1: 'blue', 2: 'green'}
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(y[:,0],y[:,1],y[:,2],c=labels)
+    plt.show()
 
 def update_y(q_table,p_table,y):
     for i in range (len(p_table[:,0])):
@@ -110,11 +115,11 @@ if __name__ == "__main__":
     X = iris.data[:,:4]  
     labels = iris.target[:]
     epsilon = 10**(-6)
-    PERPLEXITY=5
+    PERPLEXITY=10
     sigma=1
-    EPOCHS=10
-    LR= .02
-    MOMENTUM=0.99
+    EPOCHS=20
+    LR= .01
+#    MOMENTUM=0.99
 
 # create and normlize p_ table (p - higher dimension)
     # initilize p_table with sigma 1
@@ -131,13 +136,39 @@ if __name__ == "__main__":
     p_table = (p_table+p_table.T)/2*i
     
     
-    # create and normlize q_table (q - lower dimention)
-    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),2))
+
+# create and normlize q_table (q - lower dimention = 1)
+    q_dim = 1
+    LR = 0.005
+    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
     y = np.copy(initialize_y)
     q_table =  np.zeros((y.shape[0],y.shape[0]))
     q_table = update_q_table(q_table,y)
     
     # update y
+    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+    plot_tsne_1d(initialize_y,labels)
+    cost = calc_cost(q_table,p_table)
+    print (cost)
+    for i in range (EPOCHS):
+        y = update_y(q_table,p_table,y)
+        q_table = update_q_table(q_table,y)
+        cost = calc_cost(q_table,p_table)
+        if (i%5) == 0 :
+            plot_tsne_1d(y,labels)
+            print (cost)
+            LR = LR*.5
+
+# create and normlize q_table (q - lower dimention=2)
+    q_dim = 2
+    LR = 0.005
+    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+    y = np.copy(initialize_y)
+    q_table =  np.zeros((y.shape[0],y.shape[0]))
+    q_table = update_q_table(q_table,y)
+    
+    # update y
+    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
     plot_tsne_2d(initialize_y,labels)
     cost = calc_cost(q_table,p_table)
     print (cost)
@@ -145,18 +176,33 @@ if __name__ == "__main__":
         y = update_y(q_table,p_table,y)
         q_table = update_q_table(q_table,y)
         cost = calc_cost(q_table,p_table)
-        if (i%2) == 0 :
+        if (i%5) == 0 :
             plot_tsne_2d(y,labels)
             print (cost)
-            LR = LR*0.9
-        
+            LR = LR*.5
+       
 
-
-
-
+# create and normlize q_table (q - lower dimention=3)
+    LR = 0.005
+    q_dim = 3
+    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+    y = np.copy(initialize_y)
+    q_table =  np.zeros((y.shape[0],y.shape[0]))
+    q_table = update_q_table(q_table,y)
     
-
-
+    # update y
+    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+    plot_tsne_3d(initialize_y,labels)
+    cost = calc_cost(q_table,p_table)
+    print (cost)
+    for i in range (EPOCHS):
+        y = update_y(q_table,p_table,y)
+        q_table = update_q_table(q_table,y)
+        cost = calc_cost(q_table,p_table)
+        if (i%5) == 0 :
+            plot_tsne_3d(y,labels)
+            print (cost)
+            LR = LR*.5
 
 
 
