@@ -83,11 +83,14 @@ for i in range(100000):
         print (sum_loss)
         
 
-
 from sklearn import datasets
+from sklearn.preprocessing import LabelBinarizer
 iris = datasets.load_iris()
 x = iris.data[:,:4]
 y = np.reshape(iris.target,(150,1))
+hot_encoded_labels = LabelBinarizer()
+hot_encoded_labels.fit([0,1,2])
+binary_labels = hot_encoded_labels.transform(y)
 for i in range (len(y)) :
     if y[i] == 2:
         y[i] = 1
@@ -164,5 +167,48 @@ for i in range(100000):
         learning_rate = learning_rate *.9
         print (sum_loss)
         
+# 3 layers
+print ("********************************\n 3 layers 3 labels on IRIS data set:") # not working
+
+weights1 = np.random.uniform(-1,1,(4,10))
+w1 = weights1
+weights2 = np.random.uniform(-1,1,(10,10))
+w2 = weights2
+weights3 = np.random.uniform(-1,1,(10,3))
+w3= weights3
+learning_rate = 0.3
+
+for i in range(100000):
+    # forward layer 1
+    layer_1 = x@w1
+    # remember  derivatives layer 1
+    layer_1_x_derv = w1.T
+    layer_1_w_derv = x.T
+    #activation layer 1
+    layer_1_sig_activation = sigmoid(layer_1)
+    #remember sigmoid derivative
+    layer_1_sig_derv = sigmoid_derv(layer_1) 
+    layer_2= layer_1_sig_activation@w2
+    layer_2_x_derv = w2.T
+    layer_2_w_derv = layer_1_sig_activation.T
+    layer_2_sig_activation = sigmoid(layer_2)
+    layer_2_sig_derv = sigmoid_derv(layer_2)
+    layer_3 = layer_2_sig_activation@w3
+    layer_3_x_derv = w3.T
+    layer_3_w_derv = layer_2_sig_activation.T
+    layer_3_sig_activation = sigmoid(layer_3)
+    layer_3_sig_derv = sigmoid_derv(layer_3)
+    sum_loss = np.sum(loss(layer_3_sig_activation,y))
+    error = layer_3_sig_activation-binary_labels
+    delta_w3 = layer_3_w_derv@(error*layer_3_sig_derv)
+    delta_w2 = layer_2_w_derv@(layer_2_sig_derv*((error*layer_3_sig_derv)@layer_3_x_derv))
+    delta_w1 = layer_1_w_derv@(layer_1_sig_derv*((layer_2_sig_derv*layer_3_x_derv*(error*layer_3_sig_derv))@layer_2_x_derv))
+    w3 = w3 - delta_w3*learning_rate
+    w2 = w2 - delta_w2*learning_rate
+    w1 = w1 - delta_w1*learning_rate
+    if (i % 10000) == 0:
+        learning_rate = learning_rate *.9
+        print (sum_loss)
         
         
+    
