@@ -113,14 +113,16 @@ if __name__ == "__main__":
     X = iris.data[:,:4]  
     labels = iris.target[:]
     epsilon = 10**(-6)
-    PERPLEXITY=15
-    sigma=1
-    EPOCHS=20
-    LR= .01
+
 #    MOMENTUM=0.99
 
 # create and normlize p_ table (p - higher dimension)
     # initilize p_table with sigma 1
+    PERPLEXITY=15
+    sigma=1
+    EPOCHS=20
+    LR= .01
+
     p_table = np.zeros((X.shape[0],X.shape[0]))
     for i in range (len(p_table[:,0])):
         for j in range (len(p_table[0,:])):
