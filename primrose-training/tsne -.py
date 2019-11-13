@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import math
 from scipy.stats import multivariate_normal
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.manifold import TSNE
 
 
 def p_distance(xi,xj,sigma):
@@ -136,33 +137,34 @@ if __name__ == "__main__":
     p_table = (p_table+p_table.T)/2*i
     
     
-
-# create and normlize q_table (q - lower dimention = 1)
-    q_dim = 1
-    LR = 0.005
-    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
-    y = np.copy(initialize_y)
-    q_table =  np.zeros((y.shape[0],y.shape[0]))
-    q_table = update_q_table(q_table,y)
-    
-    # update y
-    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
-    plot_tsne_1d(initialize_y,labels)
-    cost = calc_cost(q_table,p_table)
-    print (cost)
-    for i in range (EPOCHS):
-        y = update_y(q_table,p_table,y)
-        q_table = update_q_table(q_table,y)
-        cost = calc_cost(q_table,p_table)
-        if (i%5) == 0 :
-            plot_tsne_1d(y,labels)
-            print (cost)
-            LR = LR*.5
+#
+## create and normlize q_table (q - lower dimention = 1)
+#    q_dim = 1
+#    LR = 0.005
+#    initialize_y = np.random.normal(0,10**(-1),(len(X[:,0]),q_dim))
+#    y = np.copy(initialize_y)
+#    q_table =  np.zeros((y.shape[0],y.shape[0]))
+#    q_table = update_q_table(q_table,y)
+#    
+#    # update y
+#    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+#    plot_tsne_1d(initialize_y,labels)
+#    cost = calc_cost(q_table,p_table)
+#    print (cost)
+#    for i in range (EPOCHS):
+#        y = update_y(q_table,p_table,y)
+#        q_table = update_q_table(q_table,y)
+#        cost = calc_cost(q_table,p_table)
+#        if (i%5) == 0 :
+#            plot_tsne_1d(y,labels)
+#            print (cost)
+#            LR = LR*.5
 
 # create and normlize q_table (q - lower dimention=2)
     q_dim = 2
-    LR = 0.005
-    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+    EPOCHS=100
+    LR = 0.1
+    initialize_y = np.random.normal(0,10**(1),(len(X[:,0]),q_dim))
     y = np.copy(initialize_y)
     q_table =  np.zeros((y.shape[0],y.shape[0]))
     q_table = update_q_table(q_table,y)
@@ -176,85 +178,88 @@ if __name__ == "__main__":
         y = update_y(q_table,p_table,y)
         q_table = update_q_table(q_table,y)
         cost = calc_cost(q_table,p_table)
-        if (i%5) == 0 :
+        if (i%10) == 0 :
             plot_tsne_2d(y,labels)
             print (cost)
-            LR = LR*.5
+            LR = LR*.9
        
+#
+## create and normlize q_table (q - lower dimention=3)
+#    LR = 0.005
+#    q_dim = 3
+#    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+#    y = np.copy(initialize_y)
+#    q_table =  np.zeros((y.shape[0],y.shape[0]))
+#    q_table = update_q_table(q_table,y)
+#    
+#    # update y
+#    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+#    plot_tsne_3d(initialize_y,labels)
+#    cost = calc_cost(q_table,p_table)
+#    print (cost)
+#    for i in range (EPOCHS):
+#        y = update_y(q_table,p_table,y)
+#        q_table = update_q_table(q_table,y)
+#        cost = calc_cost(q_table,p_table)
+#        if (i%5) == 0 :
+#            plot_tsne_3d(y,labels)
+#            print (cost)
+#            LR = LR*.5
+#
+#
+#    house_price_df = pd.read_csv(r'C:\Users\royru\Desktop\primrose\github\kaggle\train.csv')
+#    cols = ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond', 'MasVnrArea', 'GrLivArea','TotalBsmtSF','1stFlrSF' ]
+#    house_price_8 = house_price_df[cols]
+#    house_price_8 =house_price_8.replace(0,1)
+#    house_price_8 = house_price_8.fillna(value = 1)
+#    labels_df = house_price_df['SalePrice']
+#    X = np.asarray(house_price_8)
+#    X = X[:200]
+#    labels = np.asarray(labels_df)
+#    labels = labels [:200]
+#    LR = 0.001
+#    EPOCHS=20
+#    PERPLEXITY=40
+#    q_dim = 3
+#    sigma = 10000
+#    # create and normlize p_ table (p - higher dimension)
+#    # initilize p_table with sigma 1
+#    p_table = np.zeros((X.shape[0],X.shape[0]))
+#    for i in range (len(p_table[:,0])):
+#        for j in range (len(p_table[0,:])):
+#            if i != j :
+#                p_table [i,j] = p_distance(X[i],X[j],sigma)
+#        sum_over_i = np.sum(p_table[i])
+#        p_table[i] = p_table[i]/sum_over_i
+#    # update sigma for each index of p to normlize peprlexity between indexes     
+#    for i in range (len(p_table[:,0])):
+#       p_table = binary_sigma_search(p_table,i,sigma)
+#    p_table = (p_table+p_table.T)/2*i
+#
+## create and normlize q_table (q - lower dimention=3)
+#
+#    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
+#    y = np.copy(initialize_y)
+#    q_table =  np.zeros((y.shape[0],y.shape[0]))
+#    q_table = update_q_table(q_table,y)
+#    
+#    # update y
+#    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
+#    plot_tsne_3d(initialize_y,labels)
+#    cost = calc_cost(q_table,p_table)
+#    print (cost)
+#    for i in range (EPOCHS):
+#        y = update_y(q_table,p_table,y)
+#        q_table = update_q_table(q_table,y)
+#        cost = calc_cost(q_table,p_table)
+#        if (i%5) == 0 :
+#            plot_tsne_3d(y,labels)
+#            print (cost)
+#            LR = LR*.8
+#    
+#    X_tsne = TSNE(n_components=3).fit_transform(X)
+#    plot_tsne_3d(X_tsne, labels)
 
-# create and normlize q_table (q - lower dimention=3)
-    LR = 0.005
-    q_dim = 3
-    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
-    y = np.copy(initialize_y)
-    q_table =  np.zeros((y.shape[0],y.shape[0]))
-    q_table = update_q_table(q_table,y)
-    
-    # update y
-    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
-    plot_tsne_3d(initialize_y,labels)
-    cost = calc_cost(q_table,p_table)
-    print (cost)
-    for i in range (EPOCHS):
-        y = update_y(q_table,p_table,y)
-        q_table = update_q_table(q_table,y)
-        cost = calc_cost(q_table,p_table)
-        if (i%5) == 0 :
-            plot_tsne_3d(y,labels)
-            print (cost)
-            LR = LR*.5
-
-
-    house_price_df = pd.read_csv(r'C:\Users\royru\Desktop\primrose\github\kaggle\train.csv')
-    cols = ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond', 'MasVnrArea', 'GrLivArea','TotalBsmtSF','1stFlrSF' ]
-    house_price_8 = house_price_df[cols]
-    house_price_8 =house_price_8.replace(0,1)
-    house_price_8 = house_price_8.fillna(value = 1)
-    labels_df = house_price_df['SalePrice']
-    X = np.asarray(house_price_8)
-    X = X[:200]
-    labels = np.asarray(labels_df)
-    labels = labels [:200]
-    LR = 0.001
-    EPOCHS=20
-    PERPLEXITY=40
-    q_dim = 3
-    sigma = 10000
-    # create and normlize p_ table (p - higher dimension)
-    # initilize p_table with sigma 1
-    p_table = np.zeros((X.shape[0],X.shape[0]))
-    for i in range (len(p_table[:,0])):
-        for j in range (len(p_table[0,:])):
-            if i != j :
-                p_table [i,j] = p_distance(X[i],X[j],sigma)
-        sum_over_i = np.sum(p_table[i])
-        p_table[i] = p_table[i]/sum_over_i
-    # update sigma for each index of p to normlize peprlexity between indexes     
-    for i in range (len(p_table[:,0])):
-       p_table = binary_sigma_search(p_table,i,sigma)
-    p_table = (p_table+p_table.T)/2*i
-
-# create and normlize q_table (q - lower dimention=3)
-
-    initialize_y = np.random.normal(0,10**(-4),(len(X[:,0]),q_dim))
-    y = np.copy(initialize_y)
-    q_table =  np.zeros((y.shape[0],y.shape[0]))
-    q_table = update_q_table(q_table,y)
-    
-    # update y
-    print ("*******************************\n tsne from ", X.shape[1], " dimentions to ",q_dim," dimentions")
-    plot_tsne_3d(initialize_y,labels)
-    cost = calc_cost(q_table,p_table)
-    print (cost)
-    for i in range (EPOCHS):
-        y = update_y(q_table,p_table,y)
-        q_table = update_q_table(q_table,y)
-        cost = calc_cost(q_table,p_table)
-        if (i%5) == 0 :
-            plot_tsne_3d(y,labels)
-            print (cost)
-            LR = LR*.8
-    
 
 
 
