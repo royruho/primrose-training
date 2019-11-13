@@ -7,6 +7,9 @@ from scipy import signal
 from sklearn.datasets import load_digits
 Epsilon = 10**-6
 
+######################################### #
+#activation functions and its derivatives: #
+###########################################
 def sigmoid(x):
     return 1/(1 + np.exp(-x))
 
@@ -19,24 +22,31 @@ def softmax(x): # soft mac activation function
     e_x = e_x / (Epsilon+e_x.sum())
     return e_x
 
-def softmax_derv(x): #TODO not sure if correct
+def softmax_derv(x): # when using log_loss
     """Compute softmax values for each sets of scores in x."""
     return 1
 
-def hot_encode_labels(target): # encodes target to binary array size 10
-    label = np.zeros(10)
-    label[target] = 1
-    return label
-
+##############################
+# loss functions             #
+##############################
 def loss(yp,label): # squred error loss
     return 1/2*(yp-label)**2
-
-def loss_derv(yp,label): # squred root loss and softmax loss derv
-    return yp-label
 
 def log_loss(yp,label): #Soft_max loss function
     loss = label*np.log(yp+Epsilon)
     return -np.sum(loss)
+
+def loss_derv(yp,label): # for squred root loss and for softmax using log lossv
+    return yp-label
+
+
+################################
+# Misc functions               #
+################################
+def hot_encode_labels(target): # encodes target to binary array size 10
+    label = np.zeros(10)
+    label[target] = 1
+    return label
 
 def zero_pad_image(image,size): # pads image with zeros
     return np.pad(image, (size,), 'constant', constant_values=0)
@@ -48,41 +58,19 @@ def add_layers_to_image(image, number_of_kernels):
         multilayred_image[i]=image
     return multilayred_image
 
-class  Fully_connected: # fully connectoed linear layer
-    def __init__(self, prev_layer_size, curr_layer_size):
-        self.weights = np.atleast_2d(np.random.uniform(-1, 1, (prev_layer_size, curr_layer_size))) # x derv
-        self.weights = self.weights / np.sqrt(self.weights.shape[0])
-        self.bias = np.atleast_1d(np.random.uniform(-1, 1, curr_layer_size))
-        self.bias_update = 0
-        self.weights_update = 0
-    def prop(self,prev_layer):
-        self.prev_layer = np.atleast_2d(prev_layer) # w derv
-        self.curr_layer = prev_layer @ self.weights + self.bias # bias derv
-    def back_prop(self,error, batch_update, lr=0.1):
-        self.error = np.atleast_2d(error)
-        self.back_prop_error = self.error @ self.weights.T
-        self.bias_update += error
-        self.weights_update += self.prev_layer.T @ self.error
-        if batch_update:
-            self.weights = self.weights - lr*self.weights_update
-            self.bias = self.bias - lr*self.bias_update
+def predict(image,conv,fc1,sm1)
+# predicts label using forward prop and argmax
+    normlized = image / np.max(image)
+    conv.prop(normlized)
+    x=conv_layer.curr_layer
+    x=x.flatten()
+    fc1.prop(x)
+    sm1.prop(fc1.curr_layer)
+    return np.argmax(sm1.curr_layer)
 
-class  Sigmoid_activation: # non linear sigmoid activation layer
-    def prop(self,prev_layer):
-        self.prev_layer = prev_layer # w derv
-        self.curr_layer = sigmoid(self.prev_layer)
-    def back_prop(self,error,lr=0.1):
-        self.error = error
-        self.back_prop_error = sigmoid_derv(self.prev_layer)*self.error
-
-class  Soft_max: # non linear soft_max activation layer
-    def prop(self,prev_layer):
-        self.prev_layer = prev_layer # w derv
-        self.curr_layer = softmax(self.prev_layer)
-    def back_prop(self,error,lr=0.1):
-        self.error = error
-        self.back_prop_error = softmax_derv(self.prev_layer)*self.error
-
+####################################
+#   Layers as Classes              #
+####################################
 class Conv: # handmade convolution layer
     def __init__(self, img_size, kernel_size):
         self.channels = np.zeros((kernel_size[0],img_size[0],img_size[1])) - 1
@@ -97,7 +85,6 @@ class Conv: # handmade convolution layer
                     part_of_img=image[k_index, rows:rows + (kernel.shape[1]), columns:columns + (kernel.shape[2])]
                     conv=np.sum(part_of_img * kernel[k_index])
                     channels[k_index, rows, columns]=(conv/kernel.size)
-
         return channels
     def prop(self,prev_layer):
         self.prev_layer = prev_layer
@@ -134,14 +121,40 @@ class Conv_2d: # convolution layer using SciPy convolve2d
             self.kernel = self.kernel - self.back_prop_error*lr
             self.back_prop_kernal
 
-def predict(image,conv,fc1,sm1): #  forward prop and argmax
-    normlized = image / np.max(image)
-    conv.prop(normlized)
-    x=conv_layer.curr_layer
-    x=x.flatten()
-    fc1.prop(x)
-    sm1.prop(fc1.curr_layer)
-    return np.argmax(sm1.curr_layer)
+class  Fully_connected: # fully connectoed linear layer
+    def __init__(self, prev_layer_size, curr_layer_size):
+        self.weights = np.atleast_2d(np.random.uniform(-1, 1, (prev_layer_size, curr_layer_size))) # x derv
+        self.weights = self.weights / np.sqrt(self.weights.shape[0])
+        self.bias = np.atleast_1d(np.random.uniform(-1, 1, curr_layer_size))
+        self.bias_update = 0
+        self.weights_update = 0
+    def prop(self,prev_layer):
+        self.prev_layer = np.atleast_2d(prev_layer) # w derv
+        self.curr_layer = prev_layer @ self.weights + self.bias # bias derv
+    def back_prop(self,error, batch_update, lr=0.1):
+        self.error = np.atleast_2d(error)
+        self.back_prop_error = self.error @ self.weights.T
+        self.bias_update += error
+        self.weights_update += self.prev_layer.T @ self.error
+        if batch_update:
+            self.weights = self.weights - lr*self.weights_update
+            self.bias = self.bias - lr*self.bias_update
+
+class  Sigmoid_activation: # non linear sigmoid activation layer
+    def prop(self,prev_layer):
+        self.prev_layer = prev_layer # w derv
+        self.curr_layer = sigmoid(self.prev_layer)
+    def back_prop(self,error,lr=0.1):
+        self.error = error
+        self.back_prop_error = sigmoid_derv(self.prev_layer)*self.error
+
+class  Soft_max: # non linear soft_max activation layer
+    def prop(self,prev_layer):
+        self.prev_layer = prev_layer # w derv
+        self.curr_layer = softmax(self.prev_layer)
+    def back_prop(self,error,lr=0.1):
+        self.error = error
+        self.back_prop_error = softmax_derv(self.prev_layer)*self.error
 
 if __name__ == "__main__":
     ##############
@@ -217,7 +230,7 @@ if __name__ == "__main__":
         print ("predict", predict(digits.images[i],conv_layer,fc1,sm1), digits.target[i])
 
 ###############################
-#      print final filters    #
+#     print final filters     #
 ###############################
     a = digits.images[0]
     conv_layer.prop(a)
