@@ -58,7 +58,7 @@ def add_layers_to_image(image, number_of_kernels):
         multilayred_image[i]=image
     return multilayred_image
 
-def predict(image,conv,fc1,sm1)
+def predict(image,conv,fc1,sm1):
 # predicts label using forward prop and argmax
     normlized = image / np.max(image)
     conv.prop(normlized)
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     # set hyper parameters     #
     ############################
     initial_lr = .008 # initial learning rate
-    epochs = 61
+    epochs = 50
     print_shape = False # print shape of layers
     low_index = 0 # index limit of digits array
     high_index = 300 # index limit of digits array
