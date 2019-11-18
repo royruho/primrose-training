@@ -175,8 +175,8 @@ if __name__ == "__main__":
     # set hyper parameters     #
     ############################
     binary_dim=8
-    initial_lr = 0.0001 # initial learning rate
-    epochs = 100
+    initial_lr = 0.001 # initial learning rate
+    epochs = 1000
     print_loss = 20 # print loss after print_loss epochs
     LR_update = 0.99 # update learning rate each print_loss
     #################
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         weight_update = False
         # bin_generator.generate_data()
         error = []
-        for digit in range(len(bin_generator.first_bin)-1, -1, -1):
+        for digit in range(binary_dim):
             x = (bin_generator.first_bin[digit], bin_generator.second_bin[digit])
             fc1.prop(x)
             rnn1.prop(fc1.curr_layer)
