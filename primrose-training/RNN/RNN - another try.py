@@ -74,7 +74,7 @@ if __name__ == "__main__":
     ############################
     # set hyper parameters     #
     ############################
-    binary_dim=8
+    binary_dim=2
     initial_lr = 0.01 # initial learning rate
     epochs = 5
     print_loss = 1 # print loss after print_loss epochs
@@ -88,9 +88,9 @@ if __name__ == "__main__":
     #####################
     # initialize run    #
     #####################
-    w0 = 2*np.random.rand(2,16)-1
-    wh = 2*np.random.rand(16,16)-1
-    w2 = 2*np.random.rand(16,1)-1
+    w0 = (2*np.random.rand(2,16)-1)/np.sqrt(32)
+    wh = (2*np.random.rand(16,16)-1)/np.sqrt(168)
+    w2 = (2*np.random.rand(16,1)-1)/np.sqrt(16)
     for epoch in range (epochs): # epoch loop
         delta_w2 = []
         delta_wh = []
