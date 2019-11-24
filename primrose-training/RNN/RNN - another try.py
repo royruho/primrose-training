@@ -63,76 +63,88 @@ class Binary_Data: # generates binary sum examples
         self.first_int = np.random.randint(self.largest_number/2)
         self.second_int = np.random.randint(self.largest_number/2)
         self.sum_int = self.first_int + self.second_int
-        self.first_bin=self.binary_dict[self.first_int]
-        self.second_bin=self.binary_dict[self.second_int]
-        self.sum_bin=self.binary_dict[self.sum_int]
+        self.first_bin=np.flip(self.binary_dict[self.first_int])
+        self.second_bin=np.flip(self.binary_dict[self.second_int])
+        self.sum_bin=np.flip(self.binary_dict[self.sum_int])
+
 
 
 
 if __name__ == "__main__":
-
     ############################
     # set hyper parameters     #
     ############################
+<<<<<<< HEAD
     binary_dim=8
+    initial_lr = .1 # initial learning rate
+    epochs = 500
+    print_loss = 50 # print loss after print_loss epochs
+=======
+    binary_dim=2
     initial_lr = 0.01 # initial learning rate
     epochs = 5
     print_loss = 1 # print loss after print_loss epochs
+>>>>>>> a04f6caa8925598544cc50ecf86ec0fe8780b7ca
     LR_update = 0.99 # update learning rate each print_loss
     #################
     # generate data #
     #################
-    bin_generator = Binary_Data(8)
+    bin_generator = Binary_Data(binary_dim)
     LR = initial_lr
     bin_generator.generate_data()
     #####################
     # initialize run    #
     #####################
-    w0 = 2*np.random.rand(2,16)-1
-    wh = 2*np.random.rand(16,16)-1
-    w2 = 2*np.random.rand(16,1)-1
+    w0 = (2*np.random.rand(2,16)-1)/np.sqrt(32)
+    wh = (2*np.random.rand(16,16)-1)/np.sqrt(168)
+    w2 = (2*np.random.rand(16,1)-1)/np.sqrt(16)
     for epoch in range (epochs): # epoch loop
-        delta_w2 = []
-        delta_wh = []
-        delta_w0 = []
-        layer2_backprop_error = []
+        delta_w2 = np.zeros((binary_dim, w2.shape[0], w2.shape[1]))
+        delta_wh = np.zeros((binary_dim, wh.shape[0], wh.shape[1]))
+        delta_w0 = np.zeros((binary_dim, w0.shape[0], wh.shape[1]))
+        layer2_backprop_error = np.zeros((binary_dim, w2.shape[1], w2.shape[0]))
         list_layer0 = []
         list_hidden = []
         list_layer2 = []
         list_x = []
         list_hidden.append(np.zeros((1,16)))
+        hidden_array = np.zeros((binary_dim+1,1,wh.shape[1]))
+        list_yp = []
         # bin_generator.generate_data()
         error = []
         ### forward prop ###
-        for digit in range(binary_dim): 
+        for digit in range(binary_dim):
             x = (bin_generator.first_bin[digit], bin_generator.second_bin[digit])
+            # print ("digit:",digit,x , bin_generator.sum_bin[digit])
             list_x.append(np.atleast_2d(x))
             layer0 = np.atleast_2d(x@w0)
-            hidden_layer = list_hidden[-1] @ wh
+            hidden_layer = hidden_array[digit] @ wh
             hidden_layer = sigmoid(np.atleast_2d(layer0+hidden_layer))
             list_hidden.append(hidden_layer)
+            hidden_array[digit+1] = hidden_layer
             layer_2 = hidden_layer@w2
             yp = sigmoid(layer_2)
+            list_yp.append(yp)
             error.append(yp - bin_generator.sum_bin[digit])
-            layer2_backprop_error.append(sigmoid_derv(sigmoid_derv(error[-1])*w2.T))
+            layer2_backprop_error[digit] = sigmoid_derv(np.atleast_2d(sigmoid_derv(error[-1]))@w2.T)
             
         ### back prop ###
         for digit in range(binary_dim):
-            delta_w2.append(np.atleast_2d(sigmoid_derv(error[binary_dim - digit-1]).T@list_hidden[-digit-1]))
-            delta_wh.append(np.atleast_2d(list_hidden[-digit-2].T@np.sum(layer2_backprop_error[-digit-1:],axis=0)))
-            delta_w0.append(np.atleast_2d(list_x[-digit-1].T@np.sum(layer2_backprop_error[-digit-1:],axis=0)))
+            delta_w2[digit] = (list_hidden[-digit-2].T@sigmoid_derv(error[-digit-1]))
+            delta_wh[digit] = (list_hidden[-digit-1].T@np.sum(layer2_backprop_error[-digit-1:],axis=0))
+            delta_w0[digit] = (list_x[-digit-1].T@np.sum(layer2_backprop_error[-digit-1:],axis=0))
         
         ### update weights ###
-        w2 = w2 - LR*np.sum(delta_w2, axis = 0).T
+        w2 = w2 - LR*np.sum(delta_w2, axis = 0)
         wh = wh - LR*np.sum(delta_wh, axis = 0)
         w0 = w0 - LR*np.sum(delta_w0, axis = 0)
         if (epoch % print_loss) == 0:
             LR =  LR * LR_update
             # print (LR)
             print ("epoch: {}, loss: {}".format(epoch, np.sum(np.abs(error))))
-            for digit in range(binary_dim):
+            for digit in range(binary_dim-1,-1,-1):
                 print ("digit: {}, {} + {} = {} , prediction = {} , error = {}".format(digit, bin_generator.first_bin[digit],
                                          bin_generator.second_bin[digit],
-                                         bin_generator.sum_bin[digit],yp,
+                                         bin_generator.sum_bin[digit],list_yp[digit],
                                          error[digit]))
 
