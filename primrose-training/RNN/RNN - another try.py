@@ -75,11 +75,14 @@ if __name__ == "__main__":
     # set hyper parameters     #
     ############################
 <<<<<<< HEAD
+<<<<<<< HEAD
     binary_dim=8
     initial_lr = .1 # initial learning rate
     epochs = 500
     print_loss = 50 # print loss after print_loss epochs
 =======
+=======
+>>>>>>> a04f6caa8925598544cc50ecf86ec0fe8780b7ca
     binary_dim=2
     initial_lr = 0.01 # initial learning rate
     epochs = 5
